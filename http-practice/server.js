@@ -2,29 +2,32 @@ const polka = require("polka");
 const app = polka();
 const port = 3000;
 const generateID = require("./generateNum.js");
+const fs = require("fs");
+const dataPath = "data/links.json";
+
 //TODO: make it more robust, move json to new file and use fs.read/write file
-let fakeDb = [
-  {
-    id: 1,
-    url: "http://google.com",
-  },
-  {
-    id: 2,
-    url: "http://facebook.com",
-  },
-  {
-    id: 3,
-    url: "http://twitter.com",
-  },
-  {
-    id: 4,
-    url: "http://reddit.com",
-  },
-  {
-    id: 5,
-    url: "http://youtube.com",
-  },
-];
+// let fakeDb = [
+//   {
+//     id: 1,
+//     url: "http://google.com",
+//   },
+//   {
+//     id: 2,
+//     url: "http://facebook.com",
+//   },
+//   {
+//     id: 3,
+//     url: "http://twitter.com",
+//   },
+//   {
+//     id: 4,
+//     url: "http://reddit.com",
+//   },
+//   {
+//     id: 5,
+//     url: "http://youtube.com",
+//   },
+// ];
 
 app.get("/", (req, res) => {
   res.statusCode = 200;
@@ -32,50 +35,65 @@ app.get("/", (req, res) => {
 });
 
 app.get("/links", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  let body = fakeDb;
-  //TODO: do not need the event listeners : read the notes again, do not need the body variable
-  //res.write(JSON.stringify(body));
-  res.end(JSON.stringify(body)); // can add the entire write function inside res.end
-  // req.on("data", (chunk) => {
-  //   body += chunk.toString();
-  // });
-  // req.on("end", () => {
-  //   res.write(JSON.stringify(body));
-  //   res.end();
-  // });
+  fs.readFile(dataPath, (err, data) => {
+    if (err) {
+      throw err;
+    }
+    res.end(JSON.stringify(JSON.parse(data)));
+  });
 });
 
 app.get("/links/:id", (req, res) => {
-  res.setHeader("Content-Type", "application/json"); // be consistent with the responses
-  const id = req.params.id;
-  let link = fakeDb.find((link) => link.id === id);
-  if (link) {
-    res.writeHead(301, {
-      Location: `${link.url}`,
-    });
-    res.end();
-  } else {
-    res.statusCode = 404;
-    res.end(
-      JSON.stringify({
-        error: "Link does not exist",
-      })
-    );
-  }
+  res.setHeader("Content-Type", "application/json");
+  fs.readFile(dataPath, (err, data) => {
+    if (err) {
+      throw err;
+    }
+    let parsedData = JSON.parse(data);
+    const id = req.params.id;
+    let link = parsedData.find((link) => link.id === id);
+    if (link) {
+      res.writeHead(301, {
+        Location: `${link.url}`,
+      });
+      res.end();
+    } else {
+      res.statusCode = 404;
+      res.end(
+        JSON.stringify({
+          error: "Link does not exist",
+        })
+      );
+    }
+  });
 });
 
 app.post("/links", (req, res) => {
   res.setHeader("Content-Type", "application/json");
+
   let body = "";
   req.on("data", (chunk) => {
     body += chunk;
   });
-  req.on("end", () => {
-    let newLink = JSON.parse(body); //error handling can be done to check the body
-    newLink.id = generateID();
+  fs.readFile(dataPath, function (err, data) {
+    let jsonData = JSON.parse(data);
+    console.log("json", jsonData);
+    let newLink = {
+      id: generateID(),
+      url: JSON.parse(body),
+    };
     console.log("new link data", newLink);
-    fakeDb.push(newLink);
+    jsonData.push(newLink);
+    console.log("jsonData after", jsonData);
+    fs.writeFile(
+      dataPath,
+      JSON.stringify(jsonData, null, 2),
+
+      (err) => {
+        if (err) throw err;
+        console.log("Done writing"); // Success
+      }
+    );
     res.statusCode = 200;
     res.end(
       JSON.stringify({
@@ -84,8 +102,33 @@ app.post("/links", (req, res) => {
     );
   });
 
-  //   res.statusCode = 404;
-  //   res.end("Error: cannot add link");
+  // req.on("end", () => {
+  //   // let newLink = JSON.parse(body);
+  //   // newLink.id = generateID();
+  //   console.log("body before parsing", body);
+  //   let newLink = {
+  //     id: generateID(),
+  //     url: JSON.parse(body),
+  //   };
+
+  //   console.log("new link data", newLink);
+  //   //fakeDb.push(newLink);
+  //   fs.writeFile(
+  //     dataPath,
+  //     JSON.stringify(newLink, null, 2),
+  //     { flag: "a+" },
+  //     (err) => {
+  //       if (err) throw err;
+  //       console.log("Done writing"); // Success
+  //     }
+  //   );
+  //   res.statusCode = 200;
+  //   res.end(
+  //     JSON.stringify({
+  //       message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
+  //     })
+  //   );
+  // });
 });
 
 app.put("/links/:id", (req, res) => {
