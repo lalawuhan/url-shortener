@@ -1,10 +1,8 @@
 const polka = require("polka");
 const app = polka();
 const port = 3000;
-
-//TODO: add status codes to let the user know the action has happened
-//TODO: delete unneccessary comments
-
+const generateID = require("./generateNum.js");
+//TODO: make it more robust, move json to new file and use fs.read/write file
 let fakeDb = [
   {
     id: 1,
@@ -50,7 +48,7 @@ app.get("/links", (req, res) => {
 
 app.get("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json"); // be consistent with the responses
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
   let link = fakeDb.find((link) => link.id === id);
   if (link) {
     res.writeHead(301, {
@@ -75,24 +73,24 @@ app.post("/links", (req, res) => {
   });
   req.on("end", () => {
     let newLink = JSON.parse(body); //error handling can be done to check the body
-    newLink.id = 6;
+    newLink.id = generateID();
     console.log("new link data", newLink);
     fakeDb.push(newLink);
     res.statusCode = 200;
     res.end(
       JSON.stringify({
-        error: "Link successfully added",
+        message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
       })
-    ); //TODO: send back the link you made, with id as JSON
+    );
   });
+
   //   res.statusCode = 404;
   //   res.end("Error: cannot add link");
 });
-//length of key, how many keys can you have, does it need a central database, pros and cons
-//generating links
+
 app.put("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  let id = parseInt(req.params.id);
+  let id = req.params.id;
   let link = fakeDb.find((link) => link.id === id);
   if (link) {
     let body = "";
@@ -102,26 +100,36 @@ app.put("/links/:id", (req, res) => {
     req.on("end", () => {
       let linkUpdate = JSON.parse(body);
       link.url = linkUpdate.url;
-      res.end(JSON.stringify({ status: "Link was updated" }));
+      res.end(
+        JSON.stringify({
+          status: "Link was updated",
+          message: `${link.url} updated. It is now ${linkUpdate.url}`,
+        })
+      );
     });
   } else {
     res.statusCode = 404;
-    res.end("Error: cannot update link");
+    res.end(JSON.stringify({ error: "Cannot update link" }));
   }
 });
 
 app.delete("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  let matchingID = fakeDb.find((link) => link.id === parseInt(req.params.id));
-  if (matchingID) {
+  let id = req.params.id;
+  let link = fakeDb.find((link) => link.id === id);
+  if (link) {
     ///TODO: how to improve delete functionality
-    delete matchingID.url;
-    delete matchingID.id;
+    delete link.url;
+    delete link.id;
     res.statusCode = 200;
-    res.end(JSON.stringify({ status: "Deleted successsfully" }));
+    res.end(
+      JSON.stringify({
+        status: `Deleted successsfully`,
+      })
+    );
   } else {
     res.statusCode = 404;
-    res.end("Error: cannot delete link.");
+    res.end(JSON.stringify({ error: "Cannot delete link." }));
   }
 });
 
