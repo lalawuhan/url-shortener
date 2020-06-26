@@ -6,6 +6,9 @@ const fs = require("fs");
 const dataPath = "data/links.json";
 
 //TODO: make it more robust, move json to new file and use fs.read/write file
+//note: during the post I noticed that the data overwrites all the existing data, solution is to read the current file, and
+//push the new data to that array// append json data did not keep the structure I wanted.
+//TODO: do the put and delete next using the write file methods
 // let fakeDb = [
 //   {
 //     id: 1,
@@ -77,23 +80,15 @@ app.post("/links", (req, res) => {
   });
   fs.readFile(dataPath, function (err, data) {
     let jsonData = JSON.parse(data);
-    console.log("json", jsonData);
     let newLink = {
       id: generateID(),
       url: JSON.parse(body),
     };
-    console.log("new link data", newLink);
     jsonData.push(newLink);
-    console.log("jsonData after", jsonData);
-    fs.writeFile(
-      dataPath,
-      JSON.stringify(jsonData, null, 2),
-
-      (err) => {
-        if (err) throw err;
-        console.log("Done writing"); // Success
-      }
-    );
+    fs.writeFile(dataPath, JSON.stringify(jsonData, null, 2), (err) => {
+      if (err) throw err;
+      console.log("Done writing"); // Success
+    });
     res.statusCode = 200;
     res.end(
       JSON.stringify({
@@ -101,34 +96,6 @@ app.post("/links", (req, res) => {
       })
     );
   });
-
-  // req.on("end", () => {
-  //   // let newLink = JSON.parse(body);
-  //   // newLink.id = generateID();
-  //   console.log("body before parsing", body);
-  //   let newLink = {
-  //     id: generateID(),
-  //     url: JSON.parse(body),
-  //   };
-
-  //   console.log("new link data", newLink);
-  //   //fakeDb.push(newLink);
-  //   fs.writeFile(
-  //     dataPath,
-  //     JSON.stringify(newLink, null, 2),
-  //     { flag: "a+" },
-  //     (err) => {
-  //       if (err) throw err;
-  //       console.log("Done writing"); // Success
-  //     }
-  //   );
-  //   res.statusCode = 200;
-  //   res.end(
-  //     JSON.stringify({
-  //       message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
-  //     })
-  //   );
-  // });
 });
 
 app.put("/links/:id", (req, res) => {
