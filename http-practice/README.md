@@ -69,10 +69,13 @@ All API requests are made by sending a request using one of the following method
 **Example** POST request:
 
 ```
-curl -X POST -H "Content-Type:application/json" -d '{"url":"chosen_url"}'
+curl --location --request POST 'http://localhost:3000/links/' \
+--header 'Content-Type: application/json' \
+--data-raw '"postman.com"'
+
 ```
 
-- The API accepts a POST request with header `Content-Type: application/json` and a body JSON in format `{ "url": "http://example.com" }`
+- The API accepts a POST request with header `Content-Type: application/json` and a url in string format `"http://example.com"`
 - The chosen url should be a valid URL like https://www.twitter.com
 
 **Response**:
@@ -82,7 +85,7 @@ Future response could be:
 
 ```
 {
-    "shorterUrl": "ctE1zkz",
+    "shorterUrl": "g.co/12",
     "url": "https://www.google.com/search?q=flowr&sxsrf=ALeKk01LpwGUoS0hrT5mLE2pGiHHL2EPXg:1593010941417&source=lnms&tbm=isch&sa=X&ved=2ahUKEwiL7KSa3JrqAhWxuXEKHa_TAOUQ_AUoAXoECBUQAw&biw=1032&bih=1361#imgrc=n3TKvd2Q3p1XxM"
 }
 ```
@@ -95,8 +98,12 @@ Future response could be:
 **Example** PUT request:
 
 ```
-curl -X PUT  -H "Content-Type:application/json" -d '{"url":"http://localhost:8080/links/id"}'
+curl --location --request PUT 'http://localhost:3000/links/2' \
+--header 'Content-Type: application/json' \
+--data-raw ' {"url":"mail.com"}'
 ```
+
+Postman : {"url":"mail.com"}
 
 **Response**:
 
