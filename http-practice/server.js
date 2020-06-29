@@ -100,27 +100,37 @@ app.post("/links", (req, res) => {
 
 app.put("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  let id = req.params.id;
-  let link = fakeDb.find((link) => link.id === id);
-  if (link) {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk;
-    });
-    req.on("end", () => {
-      let linkUpdate = JSON.parse(body);
-      link.url = linkUpdate.url;
-      res.end(
-        JSON.stringify({
-          status: "Link was updated",
-          message: `${link.url} updated. It is now ${linkUpdate.url}`,
-        })
-      );
-    });
-  } else {
-    res.statusCode = 404;
-    res.end(JSON.stringify({ error: "Cannot update link" }));
-  }
+
+  fs.readFile(dataPath, (err, data) => {
+    if (err) {
+      throw err;
+    }
+    let jsonData = JSON.parse(data);
+    console.log("data found", jsonData);
+    const id = req.params.id;
+    let link = jsonData.find((link) => link.id === id);
+    console.log("link found", link);
+    if (link) {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+      req.on("end", () => {
+        let linkUpdate = JSON.parse(body);
+        let prevLink = link.url;
+        link.url = linkUpdate.url;
+        res.end(
+          JSON.stringify({
+            status: "Link was updated",
+            message: `${prevLink} was updated. It is now ${linkUpdate.url}`,
+          })
+        );
+      });
+    } else {
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: "Cannot update link" }));
+    }
+  });
 });
 
 app.delete("/links/:id", (req, res) => {
