@@ -3,7 +3,8 @@ const app = polka();
 const port = 3000;
 const generateID = require("./generateNum.js");
 const fs = require("fs");
-const dataPath = "data/links.json";
+
+const dataPath = "./data/links.json";
 
 //TODO: make it more robust, move json to new file and use fs.read/write file
 //note: during the post I noticed that the data overwrites all the existing data, solution is to read the current file, and
@@ -32,111 +33,108 @@ const dataPath = "data/links.json";
 //   },
 // ];
 
+let data;
+try {
+  data = JSON.parse(fs.readFileSync("data/links.json"));
+} catch (err) {
+  if (err.code === "ENOENT") {
+    console.log("File not found!");
+  } else {
+    throw err;
+  }
+}
+
+console.log("data I get back", data);
 app.get("/", (req, res) => {
   res.statusCode = 200;
   res.end("Homepage");
 });
 
 app.get("/links", (req, res) => {
-  fs.readFile(dataPath, (err, data) => {
-    if (err) {
-      throw err;
-    }
-    res.end(JSON.stringify(JSON.parse(data)));
-  });
+  res.end(JSON.stringify(data));
 });
 
 app.get("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  fs.readFile(dataPath, (err, data) => {
-    if (err) {
-      throw err;
-    }
-    let parsedData = JSON.parse(data);
-    const id = req.params.id;
-    let link = parsedData.find((link) => link.id === id);
-    if (link) {
-      res.writeHead(301, {
-        Location: `${link.url}`,
-      });
-      res.end();
-    } else {
-      res.statusCode = 404;
-      res.end(
-        JSON.stringify({
-          error: "Link does not exist",
-        })
-      );
-    }
-  });
+  const id = req.params.id;
+  let link = data.find((link) => link.id === id);
+  if (link) {
+    res.writeHead(301, {
+      Location: `${link.url}`,
+    });
+    res.end();
+  } else {
+    res.statusCode = 404;
+    res.end(
+      JSON.stringify({
+        error: "Link does not exist",
+      })
+    );
+  }
 });
 
 app.post("/links", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
+  fs.writeFile(dataPath, JSON.stringify(data, null, 2), (err) => {
+    if (err) throw err;
 
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk;
-  });
-  fs.readFile(dataPath, function (err, data) {
-    let jsonData = JSON.parse(data);
-    let newLink = {
-      id: generateID(),
-      url: JSON.parse(body),
-    };
-    jsonData.push(newLink);
-    fs.writeFile(dataPath, JSON.stringify(jsonData, null, 2), (err) => {
-      if (err) throw err;
-      console.log("Done writing"); // Success
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
     });
-    res.statusCode = 200;
-    res.end(
-      JSON.stringify({
-        message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
-      })
-    );
+    req.on("end", () => {
+      console.log("JSON DATA:", body);
+      let newLink = {
+        id: generateID(),
+        url: JSON.parse(body),
+      };
+      data.push(newLink);
+
+      console.log("Done writing", data); // Success
+
+      res.statusCode = 200;
+      res.end(
+        JSON.stringify({
+          message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
+        })
+      );
+    });
   });
 });
 
 app.put("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-
-  fs.readFile(dataPath, (err, data) => {
-    if (err) {
-      throw err;
-    }
-    let jsonData = JSON.parse(data);
-    console.log("data found", jsonData);
-    const id = req.params.id;
-    let link = jsonData.find((link) => link.id === id);
-    console.log("link found", link);
-    if (link) {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-      });
-      req.on("end", () => {
-        let linkUpdate = JSON.parse(body);
-        let prevLink = link.url;
-        link.url = linkUpdate.url;
-        res.end(
-          JSON.stringify({
-            status: "Link was updated",
-            message: `${prevLink} was updated. It is now ${linkUpdate.url}`,
-          })
-        );
-      });
-    } else {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: "Cannot update link" }));
-    }
-  });
+  console.log("data found", data);
+  const id = req.params.id;
+  let link = data.find((link) => link.id === id);
+  console.log("link found", link);
+  if (link) {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+    req.on("end", () => {
+      let linkUpdate = JSON.parse(body);
+      let prevLink = link.url;
+      link.url = linkUpdate.url;
+      res.end(
+        JSON.stringify({
+          status: "Link was updated",
+          message: `${prevLink} was updated. It is now ${linkUpdate.url}`,
+        })
+      );
+    });
+  } else {
+    res.statusCode = 404;
+    res.end(JSON.stringify({ error: "Cannot update link" }));
+  }
 });
 
 app.delete("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
+  let jsonData = JSON.parse(filePath);
   let id = req.params.id;
-  let link = fakeDb.find((link) => link.id === id);
+  let link = jsonData.find((link) => link.id === id);
+  console.log("link", link);
   if (link) {
     ///TODO: how to improve delete functionality
     delete link.url;
