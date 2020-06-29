@@ -44,7 +44,6 @@ try {
   }
 }
 
-console.log("data I get back", data);
 app.get("/", (req, res) => {
   res.statusCode = 200;
   res.end("Homepage");
@@ -131,14 +130,10 @@ app.put("/links/:id", (req, res) => {
 
 app.delete("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  let jsonData = JSON.parse(filePath);
   let id = req.params.id;
-  let link = jsonData.find((link) => link.id === id);
-  console.log("link", link);
+  let link = data.find((link) => link.id === id);
   if (link) {
-    ///TODO: how to improve delete functionality
-    delete link.url;
-    delete link.id;
+    data = data.filter((link) => link.id != req.params.id);
     res.statusCode = 200;
     res.end(
       JSON.stringify({
