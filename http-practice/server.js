@@ -145,8 +145,37 @@ app.delete("/links/:id", (req, res) => {
     res.end(JSON.stringify({ error: "Cannot delete link." }));
   }
 });
+app.use((err, req, res, next) => {
+  // Sets HTTP status code or default to server error
+  res.status(err.status || 500);
+  // Sends response
+  res.json({
+    status: err.status,
+    message: err.message,
+    //stack: err.stack,
+  });
+});
 
 app.listen(port, (err) => {
   if (err) throw err;
   console.log(`> Running on localhost:${port}`);
+});
+
+//exit events
+function save() {
+  //console.log("saved file", data);
+  fs.writeFileSync(dataPath, JSON.stringify(data));
+}
+
+//catches ctrl+c event
+process.on("SIGINT", () => {
+  save();
+  process.exit();
+});
+// test by using kill [PID_number]
+process.on("SIGTERM", () => {
+  save();
+  server.close(() => {
+    console.log("SIGTERM signal received.");
+  });
 });
