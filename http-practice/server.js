@@ -1,5 +1,15 @@
 const polka = require("polka");
-const app = polka();
+const app = polka({
+  onError: (err, req, res) => {
+    const code = (res.statusCode = err.code || err.status || 500);
+    if (code === 500 && process.env.NODE_ENV === "production") {
+      res.end(http.STATUS_CODES[code]);
+      return;
+    }
+    res.end(err.length && (err || err.message || http.STATUS_CODES[code]));
+  },
+});
+
 const port = 3000;
 const generateID = require("./generateNum.js");
 const fs = require("fs");
@@ -38,19 +48,32 @@ try {
   data = JSON.parse(fs.readFileSync("data/links.json"));
 } catch (err) {
   if (err.code === "ENOENT") {
-    console.log("File not found!");
+    const err = new Error("File does not exist.");
+    err.status = 404;
+    throw err;
   } else {
+    const err = new Error();
     throw err;
   }
 }
 
 app.get("/", (req, res) => {
-  res.statusCode = 200;
-  res.end("Homepage");
+  res.setHeader("Content-Type", "application/json");
+  try {
+    res.statusCode = 200;
+    res.end("Homepage");
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 app.get("/links", (req, res) => {
-  res.end(JSON.stringify(data));
+  res.setHeader("Content-Type", "application/json");
+  try {
+    res.end(JSON.stringify(data));
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 app.get("/links/:id", (req, res) => {
@@ -63,49 +86,46 @@ app.get("/links/:id", (req, res) => {
     });
     res.end();
   } else {
-    res.statusCode = 404;
+    const err = new Error("Link not found");
+    err.status = 404;
     res.end(
       JSON.stringify({
-        error: "Link does not exist",
+        status: err.status,
+        message: err.message,
       })
     );
   }
 });
 
 app.post("/links", (req, res) => {
-  fs.writeFile(dataPath, JSON.stringify(data, null, 2), (err) => {
-    if (err) throw err;
-
+  try {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk;
     });
     req.on("end", () => {
-      console.log("JSON DATA:", body);
       let newLink = {
-        id: generateID(),
+        id: generateID(data),
         url: JSON.parse(body),
       };
       data.push(newLink);
-
-      console.log("Done writing", data); // Success
-
       res.statusCode = 200;
       res.end(
         JSON.stringify({
-          message: ` Link successfully added: ${newLink.url} added with id of ${newLink.id}`,
+          status: res.statusCode,
+          message: `Link successfully added`,
         })
       );
     });
-  });
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 app.put("/links/:id", (req, res) => {
   res.setHeader("Content-Type", "application/json");
-  console.log("data found", data);
   const id = req.params.id;
   let link = data.find((link) => link.id === id);
-  console.log("link found", link);
   if (link) {
     let body = "";
     req.on("data", (chunk) => {
@@ -114,17 +134,27 @@ app.put("/links/:id", (req, res) => {
     req.on("end", () => {
       let linkUpdate = JSON.parse(body);
       let prevLink = link.url;
-      link.url = linkUpdate.url;
+      let newLink = linkUpdate.url;
+      link.url = newLink;
+      res.statusCode = 200;
       res.end(
         JSON.stringify({
-          status: "Link was updated",
-          message: `${prevLink} was updated. It is now ${linkUpdate.url}`,
+          status: res.statusCode,
+          message: `Link successfully updated`,
+          prevLink: prevLink,
+          newLink: newLink,
         })
       );
     });
   } else {
-    res.statusCode = 404;
-    res.end(JSON.stringify({ error: "Cannot update link" }));
+    const err = new Error("Cannot update link");
+    err.status = 404;
+    res.end(
+      JSON.stringify({
+        status: err.status,
+        message: err.message,
+      })
+    );
   }
 });
 
@@ -141,19 +171,15 @@ app.delete("/links/:id", (req, res) => {
       })
     );
   } else {
-    res.statusCode = 404;
-    res.end(JSON.stringify({ error: "Cannot delete link." }));
+    const err = new Error("Cannot delete link");
+    err.status = 404;
+    res.end(
+      JSON.stringify({
+        status: err.status,
+        message: err.message,
+      })
+    );
   }
-});
-app.use((err, req, res, next) => {
-  // Sets HTTP status code or default to server error
-  res.status(err.status || 500);
-  // Sends response
-  res.json({
-    status: err.status,
-    message: err.message,
-    //stack: err.stack,
-  });
 });
 
 app.listen(port, (err) => {
