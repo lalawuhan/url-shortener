@@ -159,13 +159,17 @@ app.delete("/links/:id", (req, res) => {
   let id = req.params.id;
   let link = data.find((link) => link.id === id);
   if (link) {
+    let linkData = link;
+    console.log("linkData", linkData);
     data = data.filter((link) => link.id != req.params.id);
-    res.statusCode = 200;
-    res.end(
-      JSON.stringify({
-        status: `Deleted successsfully`,
-      })
+    res.writeHead(200, {
+      "Content-Type": "text/html",
+    });
+    res.write(
+      `<p> ${linkData.url} with id: ${linkData.id} deleted successfully.</p>`
     );
+    res.write(renderList(data));
+    res.end();
   } else {
     const err = new Error("Cannot delete link");
     err.status = 404;
