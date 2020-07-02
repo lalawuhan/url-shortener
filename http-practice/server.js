@@ -16,33 +16,6 @@ const fs = require("fs");
 
 const dataPath = "./data/links.json";
 
-//TODO: make it more robust, move json to new file and use fs.read/write file
-//note: during the post I noticed that the data overwrites all the existing data, solution is to read the current file, and
-//push the new data to that array// append json data did not keep the structure I wanted.
-//TODO: do the put and delete next using the write file methods
-// let fakeDb = [
-//   {
-//     id: 1,
-//     url: "http://google.com",
-//   },
-//   {
-//     id: 2,
-//     url: "http://facebook.com",
-//   },
-//   {
-//     id: 3,
-//     url: "http://twitter.com",
-//   },
-//   {
-//     id: 4,
-//     url: "http://reddit.com",
-//   },
-//   {
-//     id: 5,
-//     url: "http://youtube.com",
-//   },
-// ];
-
 let data;
 try {
   data = JSON.parse(fs.readFileSync("data/links.json"));
