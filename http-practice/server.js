@@ -15,6 +15,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const port = 3000;
 const generateID = require("./generateNum.js");
+const renderList = require("./templates/renderList");
 const fs = require("fs");
 const dataPath = "./data/links.json";
 const homePage = path.join(__dirname, "index.html");
@@ -41,27 +42,10 @@ function accepts(req) {
   }
 }
 
-function renderList(data) {
-  return `<body>
-  <ul>
-  ${data.map((el) => {
-    return `
-    <li> <strong>url:</strong> ${el.url}</li>
-    <li> <strong>id:</strong> ${el.id}</li>
-    `;
-  })}
-  </ul>
-  </body>
-  `;
-}
 app.get("/", (req, res) => {
   fs.readFile(homePage, { encoding: "utf-8" }, function (err, data) {
     if (!err) {
       if (accepts(req) === "json") {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.write(data);
-        res.end();
-      } else {
         res.writeHead(200, {
           "Content-Type": "application/json",
         });
@@ -70,6 +54,10 @@ app.get("/", (req, res) => {
             links: data,
           })
         );
+      } else {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(data);
+        res.end();
       }
     } else {
       console.log(err);
@@ -137,22 +125,27 @@ app.post("/links", (req, res) => {
         message: "Data is empty",
       })
     );
-  }
-  if (accepts(req) === "json") {
-    res.end(
-      JSON.stringify({
-        status: res.statusCode,
-        message: `Link successfully added`,
-      })
-    );
   } else {
-    try {
-      let body = req.body.longurl;
-      let newLink = {
-        id: generateID(data),
-        url: JSON.parse(body),
-      };
-      data.push(newLink);
+    let body = req.body.url;
+    console.log("body", body);
+
+    let newLink = {
+      id: generateID(data),
+      url: body,
+    };
+    data.push(newLink);
+    if (accepts(req) === "json") {
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+      });
+      res.end(
+        JSON.stringify({
+          status: res.statusCode,
+          message: `Link successfully added`,
+          links: data,
+        })
+      );
+    } else {
       res.writeHead(200, {
         "Content-Type": "text/html",
       });
@@ -161,8 +154,6 @@ app.post("/links", (req, res) => {
       );
       res.write(renderList(data));
       res.end();
-    } catch (err) {
-      console.error(err);
     }
   }
 });
@@ -172,6 +163,7 @@ app.put("/links/:id", (req, res) => {
   let link = data.find((link) => link.id === id);
   if (link) {
     let body = req.body;
+    console.log("body", body);
     let newLink = body.url;
     let prevLink = link.url;
     link.url = newLink;
