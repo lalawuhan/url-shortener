@@ -33,18 +33,13 @@ try {
   }
 }
 
-app.get("/", (req, res) => {
-  fs.readFile(homePage, { encoding: "utf-8" }, function (err, data) {
-    if (!err) {
-      console.log("received data: " + data);
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.write(data);
-      res.end();
-    } else {
-      console.log(err);
-    }
-  });
-});
+function accepts(req) {
+  if (req.headers.accept.indexOf("application/json") !== -1) {
+    return "json";
+  } else {
+    return "html";
+  }
+}
 
 function renderList(data) {
   return `<body>
@@ -59,48 +54,91 @@ function renderList(data) {
   </body>
   `;
 }
+app.get("/", (req, res) => {
+  fs.readFile(homePage, { encoding: "utf-8" }, function (err, data) {
+    if (!err) {
+      if (accepts(req) === "json") {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(data);
+        res.end();
+      } else {
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+        });
+        res.end(
+          JSON.stringify({
+            links: data,
+          })
+        );
+      }
+    } else {
+      console.log(err);
+    }
+  });
+});
 
 app.get("/links", (req, res) => {
-  res.writeHead(200, {
-    "Content-Type": "text/html",
-  });
-  res.end(renderList(data));
+  if (accepts(req) === "json") {
+    console.log("accepts json");
+    res.writeHead(200, {
+      "Content-Type": "application/json",
+    });
+    res.end(
+      JSON.stringify({
+        links: data,
+      })
+    );
+  } else {
+    res.writeHead(200, {
+      "Content-Type": "text/html",
+    });
+    res.end(renderList(data));
+  }
 });
 
 app.get("/links/:id", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
   const id = req.params.id;
   let link = data.find((link) => link.id === id);
   if (link) {
-    res.writeHead(301, {
-      Location: `${link.url}`,
-    });
-    res.end();
+    if (accepts(req) === "json") {
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(301, {
+        Location: `${link.url}`,
+      });
+      res.end();
+    } else {
+      res.writeHead(301, {
+        Location: `${link.url}`,
+      });
+      res.end();
+    }
   } else {
-    const err = new Error("Link not found");
-    err.status = 404;
+    res.statusCode = 404;
     res.end(
       JSON.stringify({
-        status: err.status,
-        message: err.message,
+        status: 404,
+        message: "Link not found",
       })
     );
   }
 });
+//TODO: accept headers, maybe add accept middleware, app.ise req.accept =  accepts(req)
 
+//TODO: moved template strings
 app.post("/links", (req, res) => {
   console.log("headers", req.headers);
   console.log("content", req.headers["content-type"]);
   if (req.headers["content-length"] === "0") {
-    res.statusCode = 400;
-    res.setHeader("Content-Type", "application/json");
+    res.writeHead(400, {
+      "Content-Type": "application/json",
+    });
     res.end(
       JSON.stringify({
         message: "Data is empty",
       })
     );
   }
-  if (req.headers["content-type"] === "application/json") {
+  if (accepts(req) === "json") {
     res.end(
       JSON.stringify({
         status: res.statusCode,
@@ -130,7 +168,6 @@ app.post("/links", (req, res) => {
 });
 
 app.put("/links/:id", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
   const id = req.params.id;
   let link = data.find((link) => link.id === id);
   if (link) {
@@ -138,45 +175,67 @@ app.put("/links/:id", (req, res) => {
     let newLink = body.url;
     let prevLink = link.url;
     link.url = newLink;
-    res.statusCode = 200;
-    res.write(`<p>${prevLink} successfully updated to ${newLink}.</p>`);
-    res.write(renderList(data));
-    res.end();
+    if (accepts(req) === "json") {
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+      });
+      res.end(
+        JSON.stringify({
+          message: `${prevLink} successfully updated to ${newLink}.`,
+          links: data,
+        })
+      );
+    } else {
+      res.writeHead(200, {
+        "Content-Type": "text/html",
+      });
+      res.write(`<p>${prevLink} successfully updated to ${newLink}.</p>`);
+      res.write(renderList(data));
+      res.end();
+    }
   } else {
-    const err = new Error("Cannot update link");
-    err.status = 404;
+    res.statusCode = 404;
     res.end(
       JSON.stringify({
-        status: err.status,
-        message: err.message,
+        status: 404,
+        message: "Cannot update link",
       })
     );
   }
 });
 
 app.delete("/links/:id", (req, res) => {
-  res.setHeader("Content-Type", "application/json");
   let id = req.params.id;
   let link = data.find((link) => link.id === id);
   if (link) {
     let linkData = link;
-    console.log("linkData", linkData);
     data = data.filter((link) => link.id != req.params.id);
-    res.writeHead(200, {
-      "Content-Type": "text/html",
-    });
-    res.write(
-      `<p> ${linkData.url} with id: ${linkData.id} deleted successfully.</p>`
-    );
-    res.write(renderList(data));
-    res.end();
+    if (accepts(req) === "json") {
+      res.writeHead(200, {
+        "Content-Type": "application/json",
+      });
+      res.end(
+        JSON.stringify({
+          message: `${linkData.url} with id: ${linkData.id} deleted successfully.`,
+          links: data,
+        })
+      );
+    } else {
+      res.writeHead(200, {
+        "Content-Type": "text/html",
+      });
+      res.write(
+        `<p> ${linkData.url} with id: ${linkData.id} deleted successfully.</p>`
+      );
+      res.write(renderList(data));
+      res.end();
+    }
   } else {
-    const err = new Error("Cannot delete link");
-    err.status = 404;
+    res.statusCode = 404;
     res.end(
       JSON.stringify({
-        status: err.status,
-        message: err.message,
+        status: 404,
+        message: "Cannot delete link",
       })
     );
   }
