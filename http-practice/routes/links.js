@@ -5,26 +5,12 @@ const path = require("path");
 const homePage = path.join(__dirname, "../index.html");
 const renderList = require("../templates/renderList");
 const generateID = require("../generateNum");
-
+let { data } = require("../data/data");
 function accepts(req) {
   if (req.headers.accept.indexOf("application/json") !== -1) {
     return "json";
   } else {
     return "html";
-  }
-}
-
-let data;
-try {
-  data = JSON.parse(fs.readFileSync("data/links.json"));
-} catch (err) {
-  if (err.code === "ENOENT") {
-    const err = new Error("File does not exist.");
-    err.status = 404;
-    throw err;
-  } else {
-    const err = new Error("Error reading data");
-    throw err;
   }
 }
 
