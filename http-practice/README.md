@@ -1,18 +1,12 @@
 # url-shortener
 
-<!-- TODO  change camelcasing to camel_casing,
-delete does not need body
-fix the way words are placed, layout
-http specifications are just for me
-add parameters, maybe add a n optional parametete to use
-
- -->
-
 basic url shortener
+
+- Practising nodejs, http methods and general routing
 
 /links
 
-The api endpoint is at ("http://localhost:8080/links")
+The api endpoint is at ("http://localhost:3000/api/links")
 
 ## HTTP requests
 
@@ -31,7 +25,9 @@ All API requests are made by sending a request using one of the following method
   `redirects to matching ids homepage`
 
 **Example** GET request:
-`GET http://localhost:8080/links/`
+`GET http://localhost:3000/api/links/`
+
+`curl http://localhost:3000/api/links/ -H "Accept: application/json"`
 **Response**:
 
 ```
@@ -56,7 +52,7 @@ All API requests are made by sending a request using one of the following method
 ```
 
 **Example** GET request with id:
-`GET http://localhost:8080/links/2`
+`GET http://localhost:3000/api/links/2`
 **Response**:
 
 - Will return a 301 that redirects the user to the url that is associated with the id.
@@ -69,7 +65,7 @@ All API requests are made by sending a request using one of the following method
 **Example** POST request:
 
 ```
-curl --location --request POST 'http://localhost:3000/links/' \
+curl --location --request POST 'http://localhost:3000/api/links/' \
 --header 'Content-Type: application/json' \
 --data-raw '"postman.com"'
 
@@ -98,7 +94,7 @@ Future response could be:
 **Example** PUT request:
 
 ```
-curl --location --request PUT 'http://localhost:3000/links/2' \
+curl --location --request PUT 'http://localhost:3000/api/links/2' \
 --header 'Content-Type: application/json' \
 --data-raw ' {"url":"mail.com"}'
 ```
