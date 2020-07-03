@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+
+    <title>Link Shortener</title>
+  </head>
+  <body>
+    <div class="container">
+      <form action="http://localhost:3000/api/links/" method="POST">
+        <h1>Shorten your URL</h1>
+        <div class="form-control">
+          <label for="">Link</label>
+          <input type="text" " name="url" placeholder="Enter the link here" />
+        </div>
+        <input  type="submit" class="btn"></input>
+      </form>
+      <script type="text/javascript" src="index.js"></script>
+    </body>
+</html>
