@@ -8,26 +8,21 @@ basic url shortener
 
 The api endpoint is at ("http://localhost:3000/api/links")
 
-## HTTP requests
-
-All API requests are made by sending a request using one of the following methods, depending on the action being taken:
-
 ## Available endpoints
 
-- GET /
-  `returns homepage`
+- Return homepage : `GET /api`
 
 ### Access a link
 
-- GET /links
-  `returns all the available links in the database`
-- GET /links/:id
-  `redirects to matching ids homepage`
+- Return all the links in the database : `GET /api/links`
 
-**Example** GET request:
+- Redirects to matching ids homepage : `GET /links/:id`
+
+**Example**
 `GET http://localhost:3000/api/links/`
 
 `curl http://localhost:3000/api/links/ -H "Accept: application/json"`
+
 **Response**:
 
 ```
@@ -59,16 +54,13 @@ All API requests are made by sending a request using one of the following method
 
 ### Create a link
 
-- POST /links
-  `create a new redirect link`
-
-**Example** POST request:
+- Create a new redirect link
+  `POST /api/links`
 
 ```
 curl --location --request POST 'http://localhost:3000/api/links/' \
 --header 'Content-Type: application/json' \
 --data-raw '"postman.com"'
-
 ```
 
 - The API accepts a POST request with header `Content-Type: application/json` and a url in string format `"http://example.com"`
@@ -88,10 +80,8 @@ Future response could be:
 
 ### Update a link
 
-- PUT /links/:id
-  `update specific link url`
-
-**Example** PUT request:
+- Update specific link url
+  `PUT /api/links/:id`
 
 ```
 curl --location --request PUT 'http://localhost:3000/api/links/2' \
@@ -108,19 +98,16 @@ Postman : {"url":"mail.com"}
 
 ### Delete a link
 
-- DELETE /links/:id
-  `delete specific link url`
-  **Example** DELETE request:
+- Delete specific link url : `DELETE /api/links/:id`
 
 ```
-curl -X DELETE '{"url":"/links/id"}'
+curl -X DELETE '{"url":"/api/links/id"}'
 ```
 
 **Response**:
 
 - Deletes the url associated with the id
 - HTTP response code 200 to indicate that the request was successful
-<!-- TODO: add a code snippet here of a json file -->
 
 ## HTTP Response Codes
 
