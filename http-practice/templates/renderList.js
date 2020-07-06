@@ -4,7 +4,7 @@ module.exports = function renderList(data) {
     <form action="http://localhost:3000/api/links/" method="POST">
     <div class="form-control">
       <label for="">New Link</label>
-      <input type="text" " name="url" placeholder="Enter the link here" />
+      <input type="url" " name="url" placeholder="Enter the link here" />
     </div>
     <input  type="submit" class="btn"></input>
   </form>
@@ -14,7 +14,7 @@ module.exports = function renderList(data) {
       <div>
       <form action="http://localhost:3000/api/links/put/${el.id}" method="POST">
       <p> <strong>url:</strong> ${el.url}  <strong>id:</strong> ${el.id}</p>
-      <input type="text" " name="url" placeholder="Updated link here" />
+      <input type="url" " name="url" placeholder="Updated link here" />
       <button  type="submit" class="btn">Submit</button>
       </form>
       <form action="http://localhost:3000/api/links/delete/${el.id}" method="POST">
