@@ -6,7 +6,7 @@ basic url shortener
 
 /links
 
-The api endpoint is at ("http://localhost:3000/api/links")
+The api endpoint is at ("http://localhost:3000/links")
 
 ## Available endpoints
 
@@ -14,14 +14,14 @@ The api endpoint is at ("http://localhost:3000/api/links")
 
 ### Access a link
 
-- Return all the links in the database : `GET /api/links`
+- Return all the links in the database : `GET /links`
 
 - Redirects to matching ids homepage : `GET /links/:id`
 
 **Example**
-`GET http://localhost:3000/api/links/`
+`GET http://localhost:3000/links/`
 
-`curl http://localhost:3000/api/links/ -H "Accept: application/json"`
+`curl http://localhost:3000/links/ -H "Accept: application/json"`
 
 **Response**:
 
@@ -47,7 +47,7 @@ The api endpoint is at ("http://localhost:3000/api/links")
 ```
 
 **Example** GET request with id:
-`GET http://localhost:3000/api/links/2`
+`GET http://localhost:3000/links/2`
 **Response**:
 
 - Will return a 301 that redirects the user to the url that is associated with the id.
@@ -55,10 +55,10 @@ The api endpoint is at ("http://localhost:3000/api/links")
 ### Create a link
 
 - Create a new redirect link
-  `POST /api/links`
+  `POST /links`
 
 ```
-curl --location --request POST 'http://localhost:3000/api/links/' \
+curl --location --request POST 'http://localhost:3000/links/' \
 --header 'Content-Type: application/json' \
 --data-raw '"postman.com"'
 ```
@@ -81,10 +81,10 @@ Future response could be:
 ### Update a link
 
 - Update specific link url
-  `PUT /api/links/:id`
+  `PUT /links/:id`
 
 ```
-curl --location --request PUT 'http://localhost:3000/api/links/2' \
+curl --location --request PUT 'http://localhost:3000/links/2' \
 --header 'Content-Type: application/json' \
 --data-raw ' {"url":"mail.com"}'
 ```
@@ -98,10 +98,10 @@ Postman : {"url":"mail.com"}
 
 ### Delete a link
 
-- Delete specific link url : `DELETE /api/links/:id`
+- Delete specific link url : `DELETE /links/:id`
 
 ```
-curl -X DELETE '{"url":"/api/links/id"}'
+curl -X DELETE '{"url":"/links/id"}'
 ```
 
 **Response**:
