@@ -1,10 +1,12 @@
-const polka = require("polka");
 const fs = require("fs");
-const links = require("./routes/links");
+const polka = require("polka");
 const bodyParser = require("body-parser");
+const home = require("./routes/home");
+const links = require("./routes/links");
+let { data } = require("./data/data");
+
 const port = 3000;
 const dataPath = "./data/links.json";
-let { data } = require("./data/data");
 
 const app = polka({
   onError(err, req, res, next) {
@@ -17,7 +19,21 @@ const app = polka({
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use("/api", links);
+// app.use("/api", links);
+
+app.get("/", home);
+
+app.get("/links", home);
+
+app.get("/links/:id", links.read);
+
+app.post("/links", links.create);
+
+app.put("/links/:id", links.update);
+app.post("/links/put/:id", links.update); // for form
+
+app.delete("/links/:id", links.delete);
+app.post("/links/delete/:id", links.delete);  // for form
 
 app.listen(port, (err) => {
   if (err) throw err;
