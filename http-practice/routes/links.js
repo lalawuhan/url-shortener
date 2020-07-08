@@ -1,15 +1,10 @@
 const polka = require("polka");
-const router = polka();
 const renderList = require("../templates/renderList");
-const generateID = require("../generateNum");
+const generateID = require("../lib/generateNum");
+const accepts = require("../lib/accepts");
 let { data } = require("../data/data");
-function accepts(req) {
-  if (req.headers.accept.indexOf("application/json") !== -1) {
-    return "json";
-  } else {
-    return "html";
-  }
-}
+
+const router = polka();
 
 router.get("/", (req, res) => {
   if (accepts(req) === "json") {
