@@ -11,7 +11,6 @@ const dataPath = "./data/links.json";
 const app = polka({
   onError(err, req, res, next) {
     const http = require("http");
-    console.log(err);
     let code = (res.statusCode = err.code || err.status || 500);
     res.end((err.length && err) || err.message || http.STATUS_CODES[code]);
   },
@@ -33,7 +32,7 @@ app.put("/links/:id", links.update);
 app.post("/links/put/:id", links.update); // for form
 
 app.delete("/links/:id", links.delete);
-app.post("/links/delete/:id", links.delete);  // for form
+app.post("/links/delete/:id", links.delete); // for form
 
 app.listen(port, (err) => {
   if (err) throw err;
